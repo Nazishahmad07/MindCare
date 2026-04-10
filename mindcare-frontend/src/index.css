@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --mood-primary: #6366f1;
+  --mood-secondary: #8b5cf6;
+  --mood-bg: #0f0f1a;
+  --mood-surface: #1a1a2e;
+  --mood-text: #e2e8f0;
+  --mood-accent: #a78bfa;
+  --mood-speed: 0.3s;
+  --mood-glow: rgba(99, 102, 241, 0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--mood-bg);
+  color: var(--mood-text);
+  transition: background var(--mood-speed) ease, color var(--mood-speed) ease;
+  overflow-x: hidden;
+}
+
+/* Mood-specific CSS variables */
+body.mood-happy {
+  --mood-primary: #f59e0b;
+  --mood-secondary: #10b981;
+  --mood-bg: #0d1f0d;
+  --mood-surface: #1a2e1a;
+  --mood-text: #f0fdf4;
+  --mood-accent: #34d399;
+  --mood-speed: 0.15s;
+  --mood-glow: rgba(245, 158, 11, 0.5);
+}
+
+body.mood-sad {
+  --mood-primary: #3b82f6;
+  --mood-secondary: #6366f1;
+  --mood-bg: #0a0f1e;
+  --mood-surface: #111827;
+  --mood-text: #dbeafe;
+  --mood-accent: #93c5fd;
+  --mood-speed: 0.6s;
+  --mood-glow: rgba(59, 130, 246, 0.3);
+}
+
+body.mood-angry {
+  --mood-primary: #ef4444;
+  --mood-secondary: #f97316;
+  --mood-bg: #1a0a0a;
+  --mood-surface: #2d1515;
+  --mood-text: #fee2e2;
+  --mood-accent: #fca5a5;
+  --mood-speed: 0.2s;
+  --mood-glow: rgba(239, 68, 68, 0.4);
+}
+
+body.mood-anxious {
+  --mood-primary: #8b5cf6;
+  --mood-secondary: #6366f1;
+  --mood-bg: #0d0a1a;
+  --mood-surface: #1a1530;
+  --mood-text: #ede9fe;
+  --mood-accent: #c4b5fd;
+  --mood-speed: 0.4s;
+  --mood-glow: rgba(139, 92, 246, 0.4);
+}
+
+body.mood-tired {
+  --mood-primary: #d97706;
+  --mood-secondary: #92400e;
+  --mood-bg: #0f0d08;
+  --mood-surface: #1c1a12;
+  --mood-text: #fef3c7;
+  --mood-accent: #fcd34d;
+  --mood-speed: 0.8s;
+  --mood-glow: rgba(217, 119, 6, 0.3);
+}
+
+.mood-bg { background: var(--mood-bg); }
+.mood-surface { background: var(--mood-surface); }
+.mood-text { color: var(--mood-text); }
+.mood-primary { color: var(--mood-primary); }
+.mood-accent { color: var(--mood-accent); }
+.mood-border { border-color: var(--mood-primary); }
+.mood-glow { box-shadow: 0 0 20px var(--mood-glow); }
+
+.mood-btn {
+  background: var(--mood-primary);
+  color: var(--mood-bg);
+  transition: all var(--mood-speed) ease;
+}
+.mood-btn:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 20px var(--mood-glow);
+  transform: translateY(-2px);
+}
+
+.mood-card {
+  background: var(--mood-surface);
+  border: 1px solid var(--mood-primary);
+  transition: all var(--mood-speed) ease;
+}
+.mood-card:hover {
+  box-shadow: 0 0 25px var(--mood-glow);
+  transform: translateY(-4px);
+}
+
+.glass {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--mood-bg); }
+::-webkit-scrollbar-thumb { background: var(--mood-primary); border-radius: 3px; }
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(5deg); }
+  66% { transform: translateY(-8px) rotate(-3deg); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+.animate-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
+.animate-shake { animation: shake 0.6s ease-in-out; }
+.animate-fade-up { animation: fadeSlideUp 0.6s ease-out forwards; }
+
+/* Typing indicator */
+.typing-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--mood-primary);
+  animation: typing 1.4s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
