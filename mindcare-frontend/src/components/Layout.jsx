@@ -7,6 +7,8 @@ import MoodSelector from './MoodSelector'
 const navItems = [
   { path: '/dashboard', icon: '🏠', label: 'Dashboard' },
   { path: '/chat', icon: '🤖', label: 'AI Chat' },
+  { path: '/counselors', icon: '🧑‍⚕️', label: 'Counselors' },
+  { path: '/my-bookings', icon: '📅', label: 'My Bookings' },
   { path: '/emergency', icon: '🚨', label: 'Emergency' },
   { path: '/profile', icon: '👤', label: 'Profile' },
 ]
@@ -94,6 +96,13 @@ export default function Layout({ children }) {
             style={{ color: 'var(--mood-text)' }}>
             🚪 Logout
           </button>
+          {user?.role === 'admin' && (
+            <Link to="/admin"
+              className="block w-full text-center text-xs py-2 mt-1 rounded-lg font-semibold"
+              style={{ background: '#6366f122', color: '#6366f1', border: '1px solid #6366f144' }}>
+              🛡️ Admin Panel
+            </Link>
+          )}
         </div>
       </motion.aside>
 

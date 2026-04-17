@@ -12,6 +12,12 @@ const userSchema = new mongoose.Schema({
     mood: String,
     timestamp: { type: Date, default: Date.now }
   }],
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  points: { type: Number, default: 0 },
+  badges: [{ type: String }],
+  streak: { type: Number, default: 0 },
+  lastActiveDate: { type: String },
+  riskLevel: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true })
 
@@ -29,6 +35,10 @@ userSchema.methods.toSafeObject = function () {
   const obj = this.toObject()
   delete obj.password
   return obj
+}
+
+userSchema.methods.isAdmin = function () {
+  return this.role === 'admin'
 }
 
 module.exports = mongoose.model('User', userSchema)

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import axios from 'axios'
 
 const MoodContext = createContext(null)
 
@@ -124,6 +125,7 @@ export const ACTIVITIES = {
 export function MoodProvider({ children }) {
   const [mood, setMoodState] = useState(null)
   const [moodHistory, setMoodHistory] = useState([])
+  const [moodAnalytics, setMoodAnalytics] = useState(null)
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(localStorage.getItem('mc_token'))
   const [emergencyContacts, setEmergencyContacts] = useState([])
@@ -136,14 +138,39 @@ export function MoodProvider({ children }) {
     if (savedUser) setUser(JSON.parse(savedUser))
   }, [])
 
-  const setMood = useCallback((newMood) => {
+  // Fetch analytics whenever token changes (after login)
+  const fetchAnalytics = useCallback(async (authToken) => {
+    const t = authToken || token
+    if (!t) return
+    try {
+      const res = await axios.get('/api/mood/analytics', {
+        headers: { Authorization: `Bearer ${t}` }
+      })
+      setMoodAnalytics(res.data)
+    } catch { /* silent */ }
+  }, [token])
+
+  const setMood = useCallback(async (newMood, note = '') => {
     setMoodState(newMood)
     localStorage.setItem('mc_mood', newMood)
-    // Apply body class
     document.body.className = newMood ? `mood-${newMood}` : ''
-    // Track history
     setMoodHistory(prev => [...prev, { mood: newMood, timestamp: new Date().toISOString() }])
-  }, [])
+
+    // Sync to backend
+    const t = localStorage.getItem('mc_token')
+    if (t) {
+      try {
+        const res = await axios.post('/api/mood/update', { mood: newMood, note }, {
+          headers: { Authorization: `Bearer ${t}` }
+        })
+        // Refresh analytics after mood update
+        fetchAnalytics(t)
+        // Return risk info so callers can react
+        return res.data
+      } catch { /* silent — works offline */ }
+    }
+    return null
+  }, [fetchAnalytics])
 
   useEffect(() => {
     if (mood) document.body.className = `mood-${mood}`
@@ -154,11 +181,13 @@ export function MoodProvider({ children }) {
     setToken(authToken)
     localStorage.setItem('mc_token', authToken)
     localStorage.setItem('mc_user', JSON.stringify(userData))
-  }, [])
+    fetchAnalytics(authToken)
+  }, [fetchAnalytics])
 
   const logout = useCallback(() => {
     setUser(null)
     setToken(null)
+    setMoodAnalytics(null)
     localStorage.removeItem('mc_token')
     localStorage.removeItem('mc_user')
     localStorage.removeItem('mc_mood')
@@ -188,7 +217,8 @@ export function MoodProvider({ children }) {
   return (
     <MoodContext.Provider value={{
       mood, setMood, currentMoodData,
-      moodHistory, MOODS, MEME_DATA, ACTIVITIES,
+      moodHistory, moodAnalytics, fetchAnalytics,
+      MOODS, MEME_DATA, ACTIVITIES,
       user, token, login, logout,
       emergencyContacts, setEmergencyContacts,
       location, getLocation

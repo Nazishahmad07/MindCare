@@ -5,14 +5,16 @@ import MoodSelector from '../components/MoodSelector'
 import MoodBackground from '../components/MoodBackground'
 import ActivityCard from '../components/ActivityCard'
 import MoodChart from '../components/MoodChart'
+import MoodTrendWidget from '../components/MoodTrendWidget'
 import BreathingExercise from '../components/BreathingExercise'
 import confetti from 'canvas-confetti'
 
 export default function Dashboard() {
-  const { mood, currentMoodData, user, moodHistory } = useMood()
+  const { mood, currentMoodData, user, moodHistory, moodAnalytics } = useMood()
   const [showMoodPicker, setShowMoodPicker] = useState(!mood)
   const [activeActivity, setActiveActivity] = useState(null)
   const [showBreathing, setShowBreathing] = useState(false)
+  const [riskAlert, setRiskAlert] = useState(null)
   const confettiFired = useRef(false)
 
   useEffect(() => {
@@ -22,6 +24,13 @@ export default function Dashboard() {
     }
     if (mood !== 'happy') confettiFired.current = false
   }, [mood])
+
+  // Show risk alert popup when analytics detect high risk
+  useEffect(() => {
+    if (moodAnalytics?.risk?.level === 'high' && !riskAlert) {
+      setRiskAlert(moodAnalytics.risk)
+    }
+  }, [moodAnalytics])
 
   const memes = mood ? MEME_DATA[mood] : []
   const activities = mood ? ACTIVITIES[mood] : []
@@ -183,14 +192,25 @@ export default function Dashboard() {
             </motion.div>
           </div>
 
-          {/* Mood Chart */}
+          {/* Mood Trend Analytics */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <MoodChart history={moodHistory} />
+            <MoodTrendWidget analytics={moodAnalytics} />
           </motion.div>
+
+          {/* Legacy chart (fallback when no analytics) */}
+          {!moodAnalytics && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+            >
+              <MoodChart history={moodHistory} />
+            </motion.div>
+          )}
 
           {/* Quick Actions */}
           <motion.div
@@ -236,6 +256,9 @@ export default function Dashboard() {
         {activeActivity && activeActivity.type === 'journal' && (
           <JournalModal onClose={() => setActiveActivity(null)} />
         )}
+        {riskAlert && (
+          <RiskAlertModal risk={riskAlert} onClose={() => setRiskAlert(null)} />
+        )}
       </AnimatePresence>
     </div>
   )
@@ -278,6 +301,60 @@ function JournalModal({ onClose }) {
             className="px-4 py-2 rounded-xl opacity-60"
             style={{ color: 'var(--mood-text)' }}>
             Close
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+function RiskAlertModal({ risk, onClose }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.85)' }}
+    >
+      <motion.div
+        initial={{ scale: 0.85, y: 30 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.85, y: 30 }}
+        className="w-full max-w-sm p-6 rounded-3xl glass text-center"
+        style={{ border: '2px solid #ef4444' }}
+      >
+        <motion.div
+          animate={{ scale: [1, 1.15, 1] }}
+          transition={{ duration: 1.2, repeat: Infinity }}
+          className="text-5xl mb-3"
+        >⚠️</motion.div>
+        <h3 className="text-xl font-black text-red-400 mb-2">Mental Health Alert</h3>
+        <p className="text-sm opacity-70 mb-4" style={{ color: 'var(--mood-text)' }}>
+          {risk.reason}
+        </p>
+        <p className="text-xs opacity-50 mb-5" style={{ color: 'var(--mood-text)' }}>
+          We care about you. Please consider reaching out for support.
+        </p>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() => { onClose(); window.location.href = '/counselors' }}
+            className="w-full py-3 rounded-xl font-bold text-white"
+            style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}
+          >
+            🧑‍⚕️ Book a Counselor
+          </button>
+          <button
+            onClick={() => { onClose(); window.location.href = '/emergency' }}
+            className="w-full py-2 rounded-xl font-semibold text-sm"
+            style={{ background: '#ef444422', color: '#ef4444', border: '1px solid #ef444444' }}
+          >
+            🚨 Emergency Support
+          </button>
+          <button onClick={onClose}
+            className="w-full py-2 rounded-xl text-sm opacity-50 hover:opacity-80"
+            style={{ color: 'var(--mood-text)' }}>
+            Dismiss
           </button>
         </div>
       </motion.div>

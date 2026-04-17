@@ -1,6 +1,9 @@
 node_modules/
 .env
+.env.local
+.env.production
 .vscode/
 dist/
 build/
 *.log
+uploads/
