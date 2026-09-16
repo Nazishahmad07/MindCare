@@ -65,6 +65,10 @@ app.use('/api/resources', resourceRoutes)
 app.use('/api/tests', testRoutes)
 
 // Health check
+app.get('/', (req, res) => {
+  res.json({ service: 'MindCare API', health: '/api/health' })
+})
+
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }))
 
 // Error handler
@@ -94,7 +98,15 @@ let dbConnected = false
 
 const connectDB = async () => {
   if (dbConnected || mongoose.connection.readyState === 1) return
-  await mongoose.connect(process.env.MONGODB_URI)
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI is not configured')
+  }
+
+  // A serverless request must not wait for MongoDB's default 30-second
+  // connection timeout: Vercel will terminate the function first.
+  await mongoose.connect(process.env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 8000,
+  })
   dbConnected = true
 }
 
