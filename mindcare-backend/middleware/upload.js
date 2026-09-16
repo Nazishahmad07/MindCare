@@ -10,6 +10,7 @@ cloudinary.config({
 
 // Fallback to local disk storage if Cloudinary not configured
 const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY
+const isServerless = process.env.VERCEL === '1'
 
 const storage = useCloudinary
   ? new CloudinaryStorage({
@@ -21,7 +22,12 @@ const storage = useCloudinary
         transformation: [{ width: 1280, crop: 'limit' }],
       },
     })
-  : multer.diskStorage({
+  // Vercel functions cannot write to the deployed filesystem. Keep the file
+  // in memory so the API can start; the route returns a clear message until
+  // Cloudinary is configured.
+  : isServerless
+    ? multer.memoryStorage()
+    : multer.diskStorage({
       destination: 'uploads/',
       filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
     })

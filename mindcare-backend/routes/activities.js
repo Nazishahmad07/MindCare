@@ -25,6 +25,14 @@ router.post('/submit', authMiddleware, upload.single('media'), async (req, res) 
   try {
     const { activityId, activityTitle, activityType, mood } = req.body
 
+    // Disk uploads are unavailable on Vercel. Cloudinary gives uploaded
+    // files a permanent URL and must be configured for this feature.
+    if (req.file?.buffer) {
+      return res.status(503).json({
+        message: 'Media uploads are not configured. Add Cloudinary credentials to the backend environment variables.'
+      })
+    }
+
     let mediaUrl = null
     let mediaPublicId = null
     let mediaType = null
