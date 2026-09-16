@@ -27,16 +27,20 @@ if (process.env.VERCEL !== '1') {
 // Security
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
 
+// Browser Origin values never include a trailing slash, while deployment
+// dashboards often save URLs with one. Normalize both before comparison.
+const normalizeOrigin = (value) => value.replace(/\/+$/, '')
+
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:3000',
   'http://localhost:5173',
-].filter(Boolean)
+].filter(Boolean).map(normalizeOrigin)
 
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true)
-    if (allowedOrigins.some(o => origin.startsWith(o))) return cb(null, true)
+    if (allowedOrigins.includes(normalizeOrigin(origin))) return cb(null, true)
     cb(new Error(`CORS blocked: ${origin}`))
   },
   credentials: true
