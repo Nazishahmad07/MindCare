@@ -14,6 +14,8 @@ const moodRoutes = require('./routes/mood')
 const counselorRoutes = require('./routes/counselors')
 const activityRoutes = require('./routes/activities')
 const adminRoutes = require('./routes/admin')
+const resourceRoutes = require('./routes/resources')
+const testRoutes = require('./routes/tests')
 
 const app = express()
 
@@ -59,6 +61,8 @@ app.use('/api/mood', moodRoutes)
 app.use('/api/counselors', counselorRoutes)
 app.use('/api/activities', activityRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/resources', resourceRoutes)
+app.use('/api/tests', testRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }))

@@ -5,12 +5,14 @@ import { useMood } from '../context/MoodContext'
 import MoodSelector from './MoodSelector'
 
 const navItems = [
-  { path: '/dashboard', icon: '🏠', label: 'Dashboard' },
-  { path: '/chat', icon: '🤖', label: 'AI Chat' },
-  { path: '/counselors', icon: '🧑‍⚕️', label: 'Counselors' },
+  { path: '/dashboard',   icon: '🏠', label: 'Dashboard' },
+  { path: '/chat',        icon: '🤖', label: 'AI Chat' },
+  { path: '/counselors',  icon: '🧑‍⚕️', label: 'Counselors' },
   { path: '/my-bookings', icon: '📅', label: 'My Bookings' },
-  { path: '/emergency', icon: '🚨', label: 'Emergency' },
-  { path: '/profile', icon: '👤', label: 'Profile' },
+  { path: '/resources',   icon: '📚', label: 'Resources' },
+  { path: '/tests',       icon: '🧪', label: 'Health Tests' },
+  { path: '/emergency',   icon: '🚨', label: 'Emergency' },
+  { path: '/profile',     icon: '👤', label: 'Profile' },
 ]
 
 export default function Layout({ children }) {

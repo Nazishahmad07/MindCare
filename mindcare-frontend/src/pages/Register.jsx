@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useMood } from '../context/MoodContext'
-import axios from 'axios'
+import api from '../lib/api'
 import toast from 'react-hot-toast'
 
 export default function Register() {
@@ -15,7 +15,7 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/register', form)
+      const res = await api.post('/api/auth/register', form)
       login(res.data.user, res.data.token)
       toast.success('Account created! Welcome to MindCare AI 🎉')
       navigate('/dashboard')

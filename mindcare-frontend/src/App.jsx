@@ -11,6 +11,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Counselors from './pages/Counselors'
 import MyBookings from './pages/MyBookings'
+import Resources from './pages/Resources'
+import MentalHealthTests from './pages/MentalHealthTests'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import Layout from './components/Layout'
 
@@ -28,17 +30,23 @@ function AdminRoute({ children }) {
 
 function AppRoutes() {
   const { user } = useMood()
+
+  // Determine where a logged-in user should land
+  const homeRedirect = user?.role === 'admin' ? '/admin' : '/dashboard'
+
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
-      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+      <Route path="/" element={user ? <Navigate to={homeRedirect} /> : <Landing />} />
+      <Route path="/login" element={user ? <Navigate to={homeRedirect} /> : <Login />} />
+      <Route path="/register" element={user ? <Navigate to={homeRedirect} /> : <Register />} />
       <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Layout><Chatbot /></Layout></ProtectedRoute>} />
       <Route path="/emergency" element={<ProtectedRoute><Layout><Emergency /></Layout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
       <Route path="/counselors" element={<ProtectedRoute><Layout><Counselors /></Layout></ProtectedRoute>} />
       <Route path="/my-bookings" element={<ProtectedRoute><Layout><MyBookings /></Layout></ProtectedRoute>} />
+      <Route path="/resources" element={<ProtectedRoute><Layout><Resources /></Layout></ProtectedRoute>} />
+      <Route path="/tests" element={<ProtectedRoute><Layout><MentalHealthTests /></Layout></ProtectedRoute>} />
       <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

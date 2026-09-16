@@ -56,7 +56,10 @@ export default function MoodBackground() {
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none opacity-30">
-      <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
+      <Canvas
+        camera={{ position: [0, 0, 8], fov: 60 }}
+        style={{ pointerEvents: 'none' }}
+      >
         <Suspense fallback={null}>
           <Scene mood={mood} />
         </Suspense>

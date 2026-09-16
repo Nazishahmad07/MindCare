@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useMood } from '../context/MoodContext'
-import axios from 'axios'
+import api from '../lib/api'
 import toast from 'react-hot-toast'
 
 export default function Login() {
@@ -15,10 +15,15 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await axios.post('/api/auth/login', form)
+      const res = await api.post('/api/auth/login', form)
       login(res.data.user, res.data.token)
       toast.success(`Welcome back, ${res.data.user.name}!`)
-      navigate('/dashboard')
+      // Redirect admin users to admin panel, others to dashboard
+      if (res.data.user.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed')
     } finally {

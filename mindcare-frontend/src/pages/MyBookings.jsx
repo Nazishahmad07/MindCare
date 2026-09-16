@@ -29,11 +29,13 @@ export default function MyBookings() {
 
   const fetchBookings = async () => {
     try {
+      const authToken = token || localStorage.getItem('mc_token')
       const res = await axios.get('/api/counselors/my/bookings', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${authToken}` }
       })
       setBookings(res.data.bookings?.length ? res.data.bookings : DEMO_BOOKINGS)
-    } catch {
+    } catch (err) {
+      console.error('Fetch bookings error:', err.response?.data || err.message)
       setBookings(DEMO_BOOKINGS)
     } finally {
       setLoading(false)
@@ -42,14 +44,15 @@ export default function MyBookings() {
 
   const handleCancel = async (id) => {
     try {
-      await axios.patch(`/api/counselors/${id}/cancel`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
+      const authToken = token || localStorage.getItem('mc_token')
+      await axios.patch(`/api/counselors/cancel/${id}`, {}, {
+        headers: { Authorization: `Bearer ${authToken}` }
       })
       toast.success('Booking cancelled')
       setBookings(prev => prev.map(b => b._id === id ? { ...b, status: 'cancelled' } : b))
-    } catch {
-      toast.error('Cancellation failed (demo mode)')
-      setBookings(prev => prev.map(b => b._id === id ? { ...b, status: 'cancelled' } : b))
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Cancellation failed'
+      toast.error(msg)
     } finally {
       setCancelId(null)
     }

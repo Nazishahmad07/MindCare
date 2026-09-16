@@ -1,13 +1,19 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { useMood, MOODS } from '../context/MoodContext'
-import axios from 'axios'
+import api from '../lib/api'
 import toast from 'react-hot-toast'
 
 export default function Profile() {
-  const { user, mood, currentMoodData, moodHistory, token, logout } = useMood()
+  const { user, mood, currentMoodData, moodHistory, logout } = useMood()
+  const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', emergencyContact: user?.emergencyContact || '' })
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    phone: user?.phone || '',
+    emergencyContact: user?.emergencyContact || ''
+  })
 
   const moodCounts = moodHistory.reduce((acc, h) => {
     acc[h.mood] = (acc[h.mood] || 0) + 1
@@ -16,13 +22,17 @@ export default function Profile() {
 
   const handleSave = async () => {
     try {
-      await axios.put('/api/auth/profile', form, { headers: { Authorization: `Bearer ${token}` } })
+      await api.put('/api/auth/profile', form)
       toast.success('Profile updated!')
       setEditing(false)
-    } catch {
-      toast.success('Profile saved (demo mode)')
-      setEditing(false)
+    } catch (err) {
+      toast.error(err.displayMessage || 'Update failed')
     }
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
   }
 
   return (
@@ -142,7 +152,7 @@ export default function Profile() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={logout}
+          onClick={handleLogout}
           className="w-full py-3 rounded-2xl font-semibold text-red-400 border border-red-400/30 hover:bg-red-400/10 transition-all"
         >
           🚪 Sign Out

@@ -7,13 +7,17 @@ import AdminUsers from './AdminUsers'
 import AdminBookings from './AdminBookings'
 import AdminSubmissions from './AdminSubmissions'
 import AdminAnalytics from './AdminAnalytics'
+import AdminTests from './AdminTests'
+import AdminResources from './AdminResources'
 
 const navItems = [
-  { path: '/admin', label: 'Overview', icon: '📊', exact: true },
-  { path: '/admin/users', label: 'Users', icon: '👥' },
-  { path: '/admin/bookings', label: 'Bookings', icon: '📅' },
-  { path: '/admin/submissions', label: 'Activity Proofs', icon: '📸' },
-  { path: '/admin/analytics', label: 'Analytics', icon: '📈' },
+  { path: '/admin',             label: 'Overview',       icon: '📊', exact: true },
+  { path: '/admin/users',       label: 'Users',          icon: '👥' },
+  { path: '/admin/bookings',    label: 'Bookings',       icon: '📅' },
+  { path: '/admin/submissions', label: 'Activity Proofs',icon: '📸' },
+  { path: '/admin/analytics',   label: 'Analytics',      icon: '📈' },
+  { path: '/admin/tests',       label: 'Test Results',   icon: '🧪' },
+  { path: '/admin/resources',   label: 'Resources',      icon: '📚' },
 ]
 
 export default function AdminDashboard() {
@@ -103,6 +107,8 @@ export default function AdminDashboard() {
           <Route path="bookings" element={<AdminBookings />} />
           <Route path="submissions" element={<AdminSubmissions />} />
           <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="tests" element={<AdminTests />} />
+          <Route path="resources" element={<AdminResources />} />
           <Route path="*" element={<Navigate to="/admin" />} />
         </Routes>
       </main>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { useMood, MEME_DATA, ACTIVITIES } from '../context/MoodContext'
 import MoodSelector from '../components/MoodSelector'
 import MoodBackground from '../components/MoodBackground'
@@ -11,6 +12,7 @@ import confetti from 'canvas-confetti'
 
 export default function Dashboard() {
   const { mood, currentMoodData, user, moodHistory, moodAnalytics } = useMood()
+  const navigate = useNavigate()
   const [showMoodPicker, setShowMoodPicker] = useState(!mood)
   const [activeActivity, setActiveActivity] = useState(null)
   const [showBreathing, setShowBreathing] = useState(false)
@@ -25,7 +27,6 @@ export default function Dashboard() {
     if (mood !== 'happy') confettiFired.current = false
   }, [mood])
 
-  // Show risk alert popup when analytics detect high risk
   useEffect(() => {
     if (moodAnalytics?.risk?.level === 'high' && !riskAlert) {
       setRiskAlert(moodAnalytics.risk)
@@ -36,17 +37,48 @@ export default function Dashboard() {
   const activities = mood ? ACTIVITIES[mood] : []
 
   const moodAnimations = {
-    happy: { animate: { y: [0, -8, 0] }, transition: { duration: 0.8, repeat: Infinity } },
-    sad: { animate: { y: [0, -3, 0] }, transition: { duration: 2, repeat: Infinity } },
-    angry: { animate: { x: [0, -3, 3, -3, 0] }, transition: { duration: 0.4, repeat: Infinity, repeatDelay: 2 } },
-    anxious: { animate: { scale: [1, 1.05, 1] }, transition: { duration: 1.5, repeat: Infinity } },
-    tired: { animate: { opacity: [1, 0.7, 1] }, transition: { duration: 3, repeat: Infinity } },
+    happy:   { animate: { y: [0, -8, 0] },           transition: { duration: 0.8, repeat: Infinity } },
+    sad:     { animate: { y: [0, -3, 0] },           transition: { duration: 2, repeat: Infinity } },
+    angry:   { animate: { x: [0, -3, 3, -3, 0] },   transition: { duration: 0.4, repeat: Infinity, repeatDelay: 2 } },
+    anxious: { animate: { scale: [1, 1.05, 1] },     transition: { duration: 1.5, repeat: Infinity } },
+    tired:   { animate: { opacity: [1, 0.7, 1] },    transition: { duration: 3, repeat: Infinity } },
   }
-
   const moodAnim = mood ? moodAnimations[mood] : {}
 
+  // Handle activity start — each type gets appropriate action
+  const handleActivityStart = (activity) => {
+    switch (activity.type) {
+      case 'breathing':
+        setShowBreathing(true)
+        break
+      case 'journal':
+        setActiveActivity({ ...activity, modalType: 'journal' })
+        break
+      case 'grounding':
+        setActiveActivity({ ...activity, modalType: 'grounding' })
+        break
+      case 'physical':
+        setActiveActivity({ ...activity, modalType: 'physical' })
+        break
+      case 'comfort':
+        setActiveActivity({ ...activity, modalType: 'comfort' })
+        break
+      case 'rest':
+        setActiveActivity({ ...activity, modalType: 'rest' })
+        break
+      case 'creative':
+        setActiveActivity({ ...activity, modalType: 'creative' })
+        break
+      case 'task':
+        setActiveActivity({ ...activity, modalType: 'task' })
+        break
+      default:
+        setActiveActivity({ ...activity, modalType: 'generic' })
+    }
+  }
+
   return (
-    <div className="min-h-screen p-6 relative" style={{ background: 'var(--mood-bg)' }}>
+    <div className="min-h-screen p-6 relative" style={{ background: 'var(--mood-bg)', position: 'relative', zIndex: 1 }}>
       <MoodBackground />
 
       {/* Header */}
@@ -171,7 +203,12 @@ export default function Dashboard() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
               className="p-6 rounded-3xl"
-              style={{ background: 'var(--mood-surface)', border: '1px solid var(--mood-primary)44' }}
+              style={{
+                background: 'var(--mood-surface)',
+                border: '1px solid var(--mood-primary)44',
+                position: 'relative',
+                zIndex: 1,
+              }}
             >
               <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--mood-primary)' }}>
                 🎯 Suggested Activities
@@ -182,10 +219,7 @@ export default function Dashboard() {
                     key={activity.id}
                     activity={activity}
                     delay={0.4 + i * 0.1}
-                    onStart={() => {
-                      if (activity.type === 'breathing') setShowBreathing(true)
-                      else setActiveActivity(activity)
-                    }}
+                    onStart={() => handleActivityStart(activity)}
                   />
                 ))}
               </div>
@@ -220,16 +254,16 @@ export default function Dashboard() {
             className="grid grid-cols-2 md:grid-cols-4 gap-4"
           >
             {[
-              { icon: '🌬️', label: 'Breathe', action: () => setShowBreathing(true) },
-              { icon: '📔', label: 'Journal', action: () => setActiveActivity({ title: 'Journal', type: 'journal' }) },
-              { icon: '🤖', label: 'Chat AI', path: '/chat' },
-              { icon: '🚨', label: 'Emergency', path: '/emergency' },
+              { icon: '🌬️', label: 'Breathe',   action: () => setShowBreathing(true) },
+              { icon: '📔', label: 'Journal',   action: () => setActiveActivity({ title: 'Journal', type: 'journal', modalType: 'journal' }) },
+              { icon: '🤖', label: 'Chat AI',   action: () => navigate('/chat') },
+              { icon: '🚨', label: 'Emergency', action: () => navigate('/emergency') },
             ].map((q, i) => (
               <motion.button
                 key={i}
                 whileHover={{ scale: 1.05, y: -4 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={q.action || (() => window.location.href = q.path)}
+                onClick={q.action || (() => navigate(q.path))}
                 className="p-4 rounded-2xl flex flex-col items-center gap-2 transition-all"
                 style={{
                   background: 'var(--mood-surface)',
@@ -253,62 +287,188 @@ export default function Dashboard() {
         {showBreathing && (
           <BreathingExercise mood={mood} onClose={() => setShowBreathing(false)} />
         )}
-        {activeActivity && activeActivity.type === 'journal' && (
-          <JournalModal onClose={() => setActiveActivity(null)} />
+        {activeActivity && (
+          <ActivityModal activity={activeActivity} onClose={() => setActiveActivity(null)} />
         )}
         {riskAlert && (
-          <RiskAlertModal risk={riskAlert} onClose={() => setRiskAlert(null)} />
+          <RiskAlertModal risk={riskAlert} onClose={() => setRiskAlert(null)} navigate={navigate} />
         )}
       </AnimatePresence>
     </div>
   )
 }
 
-function JournalModal({ onClose }) {
+// ─── ACTIVITY MODAL ──────────────────────────────────────────────────────────
+// Handles all activity types: journal, grounding, physical, comfort, rest, creative, task
+
+const ACTIVITY_CONTENT = {
+  journal: {
+    title: '📔 Journal',
+    hint: 'Write freely... no judgment here 💙',
+    isText: true,
+  },
+  grounding: {
+    title: '🌍 5-4-3-2-1 Grounding',
+    steps: [
+      '👁️ Name 5 things you can SEE right now',
+      '👂 Name 4 things you can HEAR',
+      '✋ Name 3 things you can TOUCH',
+      '👃 Name 2 things you can SMELL',
+      '👅 Name 1 thing you can TASTE',
+    ],
+  },
+  physical: {
+    title: '🏃 Physical Activity',
+    steps: [
+      'Stand up and find some space',
+      'Do 10 jumping jacks',
+      'Do 10 push-ups or wall push-ups',
+      'Shake out your hands and arms',
+      'Take 3 deep breaths',
+    ],
+  },
+  comfort: {
+    title: '🫂 Comfort Activity',
+    steps: [
+      'Find a cozy, comfortable spot',
+      'Put on something calming — music, a show, or a book',
+      'Make yourself a warm drink if you can',
+      'Give yourself permission to just rest',
+      'You deserve this moment of comfort 💙',
+    ],
+  },
+  rest: {
+    title: '💤 Rest & Recharge',
+    steps: [
+      'Find a quiet, comfortable place',
+      'Set a timer for 20 minutes',
+      'Close your eyes and breathe slowly',
+      'Let your mind wander without judgment',
+      'When the timer goes off, stretch gently',
+    ],
+  },
+  creative: {
+    title: '🎨 Creative Expression',
+    steps: [
+      'Grab any creative tool — pen, phone, anything',
+      'Don\'t aim for perfection, just express',
+      'Draw, write, doodle, or hum a tune',
+      'Focus on the process, not the result',
+      'You created something — that\'s amazing! ✨',
+    ],
+  },
+  task: {
+    title: '🎯 Focus Session',
+    steps: [
+      'Choose ONE task to focus on',
+      'Set a 25-minute timer (Pomodoro)',
+      'Remove all distractions — phone on silent',
+      'Work until the timer rings',
+      'Take a 5-minute break, then repeat',
+    ],
+  },
+  generic: {
+    title: '✨ Activity',
+    steps: ['Follow the activity description', 'Take your time', 'Be kind to yourself'],
+  },
+}
+
+function ActivityModal({ activity, onClose }) {
   const [text, setText] = useState('')
+  const [saved, setSaved] = useState(false)
+  const type = activity.modalType || activity.type || 'generic'
+  const content = ACTIVITY_CONTENT[type] || ACTIVITY_CONTENT.generic
+
+  const handleSave = () => {
+    setSaved(true)
+    setTimeout(onClose, 800)
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.8)' }}
+      style={{ background: 'rgba(0,0,0,0.85)' }}
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        exit={{ scale: 0.9 }}
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
         className="w-full max-w-lg p-6 rounded-3xl glass"
         style={{ border: '1px solid var(--mood-primary)' }}
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--mood-primary)' }}>📔 Journal</h3>
-        <textarea
-          value={text}
-          onChange={e => setText(e.target.value)}
-          placeholder="Write freely... no judgment here 💙"
-          className="w-full h-48 p-4 rounded-xl bg-white/5 border resize-none focus:outline-none text-sm"
-          style={{ borderColor: 'var(--mood-primary)44', color: 'var(--mood-text)' }}
-        />
-        <div className="flex gap-3 mt-4">
-          <button onClick={onClose}
-            className="flex-1 py-2 rounded-xl font-semibold"
-            style={{ background: 'var(--mood-primary)', color: 'var(--mood-bg)' }}>
-            Save Entry
-          </button>
-          <button onClick={onClose}
-            className="px-4 py-2 rounded-xl opacity-60"
-            style={{ color: 'var(--mood-text)' }}>
-            Close
-          </button>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold" style={{ color: 'var(--mood-primary)' }}>
+            {content.title}
+          </h3>
+          <button onClick={onClose} className="text-xl opacity-50 hover:opacity-100"
+            style={{ color: 'var(--mood-text)' }}>✕</button>
         </div>
+
+        {content.isText ? (
+          <>
+            <textarea
+              value={text}
+              onChange={e => setText(e.target.value)}
+              placeholder={content.hint}
+              autoFocus
+              className="w-full h-48 p-4 rounded-xl bg-white/5 border resize-none focus:outline-none text-sm"
+              style={{ borderColor: 'var(--mood-primary)44', color: 'var(--mood-text)' }}
+            />
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={handleSave}
+                className="flex-1 py-2.5 rounded-xl font-semibold text-sm"
+                style={{ background: 'var(--mood-primary)', color: 'var(--mood-bg)' }}
+              >
+                {saved ? '✅ Saved!' : '💾 Save Entry'}
+              </button>
+              <button onClick={onClose}
+                className="px-4 py-2.5 rounded-xl opacity-60 text-sm"
+                style={{ color: 'var(--mood-text)' }}>
+                Close
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="space-y-3 mb-5">
+              {content.steps.map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-start gap-3 p-3 rounded-xl"
+                  style={{ background: 'rgba(255,255,255,0.05)' }}
+                >
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+                    style={{ background: 'var(--mood-primary)', color: 'var(--mood-bg)' }}>
+                    {i + 1}
+                  </span>
+                  <p className="text-sm" style={{ color: 'var(--mood-text)' }}>{step}</p>
+                </motion.div>
+              ))}
+            </div>
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 rounded-xl font-semibold text-sm"
+              style={{ background: 'var(--mood-primary)', color: 'var(--mood-bg)' }}
+            >
+              ✅ Done
+            </button>
+          </>
+        )}
       </motion.div>
     </motion.div>
   )
 }
 
-function RiskAlertModal({ risk, onClose }) {
+function RiskAlertModal({ risk, onClose, navigate }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -338,14 +498,14 @@ function RiskAlertModal({ risk, onClose }) {
         </p>
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => { onClose(); window.location.href = '/counselors' }}
+            onClick={() => { onClose(); navigate('/counselors') }}
             className="w-full py-3 rounded-xl font-bold text-white"
             style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}
           >
             🧑‍⚕️ Book a Counselor
           </button>
           <button
-            onClick={() => { onClose(); window.location.href = '/emergency' }}
+            onClick={() => { onClose(); navigate('/emergency') }}
             className="w-full py-2 rounded-xl font-semibold text-sm"
             style={{ background: '#ef444422', color: '#ef4444', border: '1px solid #ef444444' }}
           >

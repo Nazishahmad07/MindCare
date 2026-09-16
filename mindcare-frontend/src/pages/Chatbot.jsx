@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { useMood } from '../context/MoodContext'
-import axios from 'axios'
+import api from '../lib/api'
 import toast from 'react-hot-toast'
 
 const CRISIS_KEYWORDS = ['suicide', 'kill myself', 'end my life', 'want to die', 'self harm', 'hurt myself']
@@ -40,7 +41,7 @@ const GREETINGS = [
 ]
 
 export default function Chatbot() {
-  const { mood, currentMoodData, token } = useMood()
+  const { mood, currentMoodData } = useMood()
   const [messages, setMessages] = useState([
     { id: 1, role: 'ai', text: GREETINGS[0], timestamp: new Date() }
   ])
@@ -95,11 +96,9 @@ export default function Chatbot() {
       id: Date.now() + 1, role: 'ai', text: response, timestamp: new Date(), isCrisis
     }])
 
-    // Try to save to backend
+    // Save to backend using authenticated api instance
     try {
-      await axios.post('/api/chat/message', { message: userMsg, mood }, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await api.post('/api/chat/message', { message: userMsg, mood })
     } catch {}
   }
 
@@ -153,9 +152,9 @@ export default function Chatbot() {
               <p className="text-sm font-semibold text-red-400">Crisis keywords detected</p>
               <p className="text-xs text-red-300">Kiran Helpline: 1800-599-0019 (Free, 24/7)</p>
             </div>
-            <a href="/emergency" className="px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white">
+            <Link to="/emergency" className="px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white">
               Emergency
-            </a>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>

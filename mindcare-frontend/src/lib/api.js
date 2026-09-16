@@ -1,16 +1,28 @@
+/**
+ * Axios instance with automatic JWT injection.
+ * Always reads the token fresh from localStorage so stale
+ * React state never causes 401 errors.
+ */
 import axios from 'axios'
 
-// In production the frontend is served from the same origin as the backend,
-// OR the backend URL is injected via VITE_API_URL env variable.
-const baseURL = import.meta.env.VITE_API_URL || ''
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '',
+})
 
-const api = axios.create({ baseURL })
-
-// Attach JWT token automatically
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('mc_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
+
+api.interceptors.response.use(
+  res => res,
+  err => {
+    // Surface the real backend error message
+    const msg = err.response?.data?.message || err.message || 'Request failed'
+    err.displayMessage = msg
+    return Promise.reject(err)
+  }
+)
 
 export default api
