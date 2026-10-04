@@ -83,6 +83,170 @@ body.mood-tired {
   --mood-glow: rgba(217, 119, 6, 0.3);
 }
 
+/* Conventional, high-contrast light palette. It deliberately overrides the
+   selected mood palette while preserving the same semantic CSS variables. */
+body.light-theme {
+  --mood-primary: #4f46e5;
+  --mood-secondary: #7c3aed;
+  --mood-bg: #f1f5f9;
+  --mood-surface: #ffffff;
+  --mood-text: #0f172a;
+  --mood-accent: #6366f1;
+  --mood-speed: 0.3s;
+  --mood-glow: rgba(79, 70, 229, 0.16);
+}
+
+body.light-theme .glass {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+/* Light mode uses stronger contrast for secondary content and restrained
+   elevation instead of inheriting the dark theme's low-opacity styling. */
+body.light-theme .mood-surface,
+body.light-theme .mood-card {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
+}
+
+body.light-theme .opacity-40 { opacity: 0.65; }
+body.light-theme .opacity-50 { opacity: 0.72; }
+body.light-theme .opacity-60 { opacity: 0.82; }
+body.light-theme .opacity-70 { opacity: 0.88; }
+body.light-theme .opacity-80 { opacity: 0.92; }
+
+body.light-theme .sidebar-nav-item:hover { background: #eef2ff; }
+
+.theme-toggle {
+  background: color-mix(in srgb, var(--mood-primary) 8%, transparent);
+}
+
+.theme-toggle:hover {
+  background: color-mix(in srgb, var(--mood-primary) 16%, transparent);
+  transform: translateY(-1px);
+}
+
+/* Shared action treatment: a clear colored call-to-action with a bordered,
+   white hover state. Use this for normal actions throughout the app. */
+.primary-button {
+  background: var(--mood-primary);
+  color: #ffffff;
+  border: 1px solid var(--mood-primary);
+  box-shadow: 0 4px 12px var(--mood-glow);
+  transition: background var(--mood-speed) ease, color var(--mood-speed) ease,
+    border-color var(--mood-speed) ease, transform var(--mood-speed) ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #ffffff;
+  color: var(--mood-primary);
+  border-color: var(--mood-primary);
+}
+
+.primary-button:focus-visible,
+.logout-button:focus-visible {
+  outline: 3px solid var(--mood-primary);
+  outline-offset: 3px;
+}
+
+.sidebar-profile {
+  background: color-mix(in srgb, var(--mood-primary) 5%, transparent);
+  border-radius: 0.75rem;
+  padding: 1rem 0.75rem 0.75rem;
+}
+
+.sidebar-email {
+  color: var(--mood-text);
+  opacity: 0.68;
+}
+
+.logout-button {
+  color: #ffffff !important;
+  background: #dc2626;
+  border: 1px solid #ef4444;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+  transition: background var(--mood-speed) ease, color var(--mood-speed) ease,
+    border-color var(--mood-speed) ease, box-shadow var(--mood-speed) ease;
+}
+
+.logout-button:hover {
+  background: #ffffff;
+  color: #dc2626 !important;
+  border-color: #dc2626;
+  box-shadow: 0 6px 14px rgba(220, 38, 38, 0.14);
+}
+
+/* Mobile and tablet foundation ------------------------------------------------
+   The app is designed desktop-first, so these shared rules keep all screens
+   inside the viewport while retaining the existing component hierarchy. */
+#root {
+  min-width: 320px;
+}
+
+.primary-button,
+.logout-button,
+.theme-toggle {
+  min-height: 44px;
+}
+
+@media (max-width: 767px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Consistent phone gutters for all user/admin pages that use Tailwind's
+     desktop p-6/p-8 utility. */
+  .min-h-screen.p-6,
+  .min-h-screen .p-6 {
+    padding: 1rem;
+  }
+
+  .p-8 {
+    padding: 1.25rem;
+  }
+
+  .text-3xl {
+    font-size: 1.75rem;
+    line-height: 2.1rem;
+  }
+
+  .text-5xl {
+    font-size: 2.5rem;
+  }
+
+  /* Prevent iOS Safari from zooming into form controls. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Keep dialogs usable on short screens: their content scrolls instead of
+     being clipped below the browser controls. */
+  .fixed.inset-0 .max-w-sm,
+  .fixed.inset-0 .max-w-md,
+  .fixed.inset-0 .max-w-lg {
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Filters and split confirmation actions should not force horizontal
+     scrolling when the available phone width is narrow. */
+  .flex.gap-3 > .flex-1 {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .min-h-screen.p-6 {
+    padding: 1.5rem;
+  }
+}
+
 .mood-bg { background: var(--mood-bg); }
 .mood-surface { background: var(--mood-surface); }
 .mood-text { color: var(--mood-text); }

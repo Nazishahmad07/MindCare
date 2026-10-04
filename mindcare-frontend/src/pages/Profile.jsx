@@ -73,8 +73,7 @@ export default function Profile() {
             <h3 className="font-bold" style={{ color: 'var(--mood-primary)' }}>👤 Profile Info</h3>
             <button
               onClick={() => editing ? handleSave() : setEditing(true)}
-              className="px-4 py-1.5 rounded-lg text-sm font-semibold"
-              style={{ background: 'var(--mood-primary)', color: 'var(--mood-bg)' }}
+              className="primary-button px-4 py-1.5 rounded-lg text-sm font-semibold"
             >
               {editing ? '💾 Save' : '✏️ Edit'}
             </button>
@@ -153,7 +152,7 @@ export default function Profile() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleLogout}
-          className="w-full py-3 rounded-2xl font-semibold text-red-400 border border-red-400/30 hover:bg-red-400/10 transition-all"
+          className="logout-button w-full py-3 rounded-2xl font-semibold transition-all"
         >
           🚪 Sign Out
         </motion.button>

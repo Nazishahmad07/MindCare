@@ -128,6 +128,10 @@ export function MoodProvider({ children }) {
   const [moodAnalytics, setMoodAnalytics] = useState(null)
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(localStorage.getItem('mc_token'))
+  // Users can keep the mood-aware palette or choose a conventional light UI.
+  // Keep this preference separate from the selected mood so changing a mood
+  // never unexpectedly switches a user back from their chosen light theme.
+  const [themeMode, setThemeMode] = useState(() => localStorage.getItem('mc_theme') || 'mood')
   const [emergencyContacts, setEmergencyContacts] = useState([])
   const [location, setLocation] = useState(null)
 
@@ -153,7 +157,6 @@ export function MoodProvider({ children }) {
   const setMood = useCallback(async (newMood, note = '') => {
     setMoodState(newMood)
     localStorage.setItem('mc_mood', newMood)
-    document.body.className = newMood ? `mood-${newMood}` : ''
     setMoodHistory(prev => [...prev, { mood: newMood, timestamp: new Date().toISOString() }])
 
     // Sync to backend
@@ -173,8 +176,18 @@ export function MoodProvider({ children }) {
   }, [fetchAnalytics])
 
   useEffect(() => {
-    if (mood) document.body.className = `mood-${mood}`
-  }, [mood])
+    document.body.className = themeMode === 'light'
+      ? 'light-theme'
+      : mood ? `mood-${mood}` : ''
+  }, [mood, themeMode])
+
+  const toggleTheme = useCallback(() => {
+    setThemeMode(current => {
+      const next = current === 'light' ? 'mood' : 'light'
+      localStorage.setItem('mc_theme', next)
+      return next
+    })
+  }, [])
 
   const login = useCallback((userData, authToken) => {
     setUser(userData)
@@ -192,7 +205,6 @@ export function MoodProvider({ children }) {
     localStorage.removeItem('mc_user')
     localStorage.removeItem('mc_mood')
     setMoodState(null)
-    document.body.className = ''
   }, [])
 
   const getLocation = useCallback(() => {
@@ -217,6 +229,7 @@ export function MoodProvider({ children }) {
   return (
     <MoodContext.Provider value={{
       mood, setMood, currentMoodData,
+      themeMode, toggleTheme,
       moodHistory, moodAnalytics, fetchAnalytics,
       MOODS, MEME_DATA, ACTIVITIES,
       user, token, login, logout,

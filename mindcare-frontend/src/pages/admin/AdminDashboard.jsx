@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           <Link to="/dashboard" className="block text-xs text-center py-1.5 rounded-lg text-gray-500 hover:bg-gray-100 mb-1">
             ← Back to App
           </Link>
-          <button onClick={logout} className="w-full text-xs py-1.5 rounded-lg text-red-400 hover:bg-red-50">
+          <button onClick={logout} className="logout-button w-full text-xs py-1.5 rounded-lg">
             🚪 Logout
           </button>
         </div>

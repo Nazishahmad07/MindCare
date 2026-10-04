@@ -16,7 +16,7 @@ const navItems = [
 ]
 
 export default function Layout({ children }) {
-  const { mood, currentMoodData, user, logout } = useMood()
+  const { currentMoodData, user, logout, themeMode, toggleTheme } = useMood()
   const location = useLocation()
   const navigate = useNavigate()
   const [showMoodSelector, setShowMoodSelector] = useState(false)
@@ -33,7 +33,7 @@ export default function Layout({ children }) {
       <motion.aside
         initial={{ x: -80, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="hidden md:flex flex-col w-64 mood-surface border-r mood-border p-4 fixed h-full z-20"
+        className="hidden md:flex flex-col w-64 mood-surface border-r mood-border p-4 fixed h-dvh z-20 overflow-y-auto overscroll-contain"
         style={{ borderColor: 'var(--mood-primary)', background: 'var(--mood-surface)' }}
       >
         {/* Logo */}
@@ -68,7 +68,7 @@ export default function Layout({ children }) {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                 location.pathname === item.path
                   ? 'mood-btn font-semibold'
-                  : 'hover:bg-white/5 mood-text opacity-70 hover:opacity-100'
+                  : 'sidebar-nav-item hover:bg-white/5 mood-text opacity-80 hover:opacity-100'
               }`}
               style={location.pathname === item.path ? {
                 background: 'var(--mood-primary)',
@@ -81,21 +81,30 @@ export default function Layout({ children }) {
           ))}
         </nav>
 
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="theme-toggle mt-4 w-full flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors"
+          style={{ borderColor: 'var(--mood-primary)', color: 'var(--mood-text)' }}
+          aria-pressed={themeMode === 'light'}
+        >
+          {themeMode === 'light' ? '🎨 Use Mood Theme' : '☀️ Default Light Theme'}
+        </button>
+
         {/* User */}
-        <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--mood-primary)', opacity: 0.3 }}>
-          <div className="flex items-center gap-3 mb-3">
+        <div className="sidebar-profile mt-4 pt-4 border-t shrink-0" style={{ borderColor: 'var(--mood-primary)55' }}>
+          <div className="flex items-center gap-3 mb-3 min-w-0">
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
               style={{ background: 'var(--mood-primary)', color: 'var(--mood-bg)' }}>
               {user?.name?.[0]?.toUpperCase() || 'U'}
             </div>
-            <div>
-              <p className="text-sm font-medium mood-text" style={{ color: 'var(--mood-text)' }}>{user?.name}</p>
-              <p className="text-xs opacity-50">{user?.email}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold mood-text truncate" style={{ color: 'var(--mood-text)' }}>{user?.name}</p>
+              <p className="text-xs sidebar-email truncate">{user?.email}</p>
             </div>
           </div>
           <button onClick={handleLogout}
-            className="w-full text-sm py-2 rounded-lg opacity-60 hover:opacity-100 transition-all mood-text"
-            style={{ color: 'var(--mood-text)' }}>
+            className="logout-button w-full text-sm py-2 rounded-lg transition-all">
             🚪 Logout
           </button>
           {user?.role === 'admin' && (
@@ -129,7 +138,7 @@ export default function Layout({ children }) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="md:hidden fixed top-14 left-0 right-0 z-20 glass p-4 space-y-2"
+            className="md:hidden fixed top-14 left-0 right-0 z-20 glass p-4 space-y-2 max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain"
           >
             {navItems.map(item => (
               <Link key={item.path} to={item.path}
@@ -141,7 +150,17 @@ export default function Layout({ children }) {
                 <span>{item.icon}</span><span>{item.label}</span>
               </Link>
             ))}
-            <button onClick={handleLogout} className="w-full text-left px-4 py-3 opacity-60"
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+              style={{ color: 'var(--mood-text)', border: '1px solid var(--mood-primary)' }}
+              aria-pressed={themeMode === 'light'}
+            >
+              <span>{themeMode === 'light' ? '🎨' : '☀️'}</span>
+              <span>{themeMode === 'light' ? 'Use Mood Theme' : 'Default Light Theme'}</span>
+            </button>
+            <button onClick={handleLogout} className="logout-button w-full text-left px-4 py-3 rounded-xl"
               style={{ color: 'var(--mood-text)' }}>🚪 Logout</button>
           </motion.div>
         )}

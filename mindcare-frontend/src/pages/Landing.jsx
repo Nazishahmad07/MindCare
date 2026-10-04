@@ -109,7 +109,7 @@ export default function Landing() {
             How are you feeling today?
           </p>
 
-          <div className="grid grid-cols-5 gap-4 mb-10">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 mb-8 sm:mb-10">
             {Object.values(MOODS).map((m, i) => (
               <motion.button
                 key={m.id}
@@ -119,14 +119,14 @@ export default function Landing() {
                 whileHover={{ scale: 1.2, y: -10 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleMoodSelect(m.id)}
-                className="flex flex-col items-center gap-3 p-4 rounded-2xl transition-all"
+                className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-2xl transition-all"
                 style={{
                   background: `${m.color}15`,
                   border: `2px solid ${m.color}44`,
                 }}
               >
                 <motion.span
-                  className="text-5xl"
+                  className="text-3xl sm:text-5xl"
                   animate={{ y: [0, -5, 0] }}
                   transition={{ duration: 2 + i * 0.3, repeat: Infinity }}
                 >
@@ -144,8 +144,7 @@ export default function Landing() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/login')}
-              className="px-8 py-3 rounded-xl font-semibold text-white"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+              className="primary-button px-8 py-3 rounded-xl font-semibold"
             >
               Sign In
             </motion.button>
@@ -153,8 +152,7 @@ export default function Landing() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/register')}
-              className="px-8 py-3 rounded-xl font-semibold border"
-              style={{ borderColor: '#6366f1', color: '#a78bfa' }}
+              className="primary-button px-8 py-3 rounded-xl font-semibold"
             >
               Get Started Free
             </motion.button>
@@ -166,7 +164,7 @@ export default function Landing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}
-          className="mt-16 grid grid-cols-3 gap-6 max-w-2xl w-full"
+          className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 max-w-2xl w-full"
         >
           {[
             { icon: '🎭', text: 'Mood-Adaptive UI' },

@@ -110,7 +110,7 @@ export default function Chatbot() {
   }
 
   return (
-    <div className="h-screen flex flex-col" style={{ background: 'var(--mood-bg)' }}>
+    <div className="h-[calc(100dvh-4rem)] md:h-dvh flex flex-col" style={{ background: 'var(--mood-bg)' }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
