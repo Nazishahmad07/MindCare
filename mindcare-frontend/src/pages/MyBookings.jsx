@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import api from '../lib/api'
 import toast from 'react-hot-toast'
 import { useMood } from '../context/MoodContext'
 
@@ -12,15 +12,11 @@ const STATUS_STYLES = {
   completed: { bg: '#6366f122', color: '#6366f1', label: '🎓 Completed' },
 }
 
-const DEMO_BOOKINGS = [
-  { _id: 'b1', counselorId: { name: 'Dr. Priya Sharma', specialization: 'Anxiety' }, date: '2026-04-15', time: '10:00', status: 'approved', notes: 'Feeling very anxious about exams', createdAt: new Date().toISOString() },
-  { _id: 'b2', counselorId: { name: 'Dr. Arjun Mehta', specialization: 'Depression' }, date: '2026-04-20', time: '14:00', status: 'pending', notes: '', createdAt: new Date().toISOString() },
-]
-
 export default function MyBookings() {
   const { token } = useMood()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [cancelId, setCancelId] = useState(null)
 
   useEffect(() => {
@@ -28,15 +24,18 @@ export default function MyBookings() {
   }, [])
 
   const fetchBookings = async () => {
+    setLoading(true)
+    setLoadError('')
     try {
       const authToken = token || localStorage.getItem('mc_token')
-      const res = await axios.get('/api/counselors/my/bookings', {
+      const res = await api.get('/api/counselors/my/bookings', {
         headers: { Authorization: `Bearer ${authToken}` }
       })
-      setBookings(res.data.bookings?.length ? res.data.bookings : DEMO_BOOKINGS)
+      setBookings(res.data.bookings || [])
     } catch (err) {
       console.error('Fetch bookings error:', err.response?.data || err.message)
-      setBookings(DEMO_BOOKINGS)
+      setBookings([])
+      setLoadError('Could not load your bookings. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -45,7 +44,7 @@ export default function MyBookings() {
   const handleCancel = async (id) => {
     try {
       const authToken = token || localStorage.getItem('mc_token')
-      await axios.patch(`/api/counselors/cancel/${id}`, {}, {
+      await api.patch(`/api/counselors/cancel/${id}`, {}, {
         headers: { Authorization: `Bearer ${authToken}` }
       })
       toast.success('Booking cancelled')
@@ -69,6 +68,11 @@ export default function MyBookings() {
 
         {loading ? (
           <div className="text-center py-20 opacity-50" style={{ color: 'var(--mood-text)' }}>Loading...</div>
+        ) : loadError ? (
+          <div className="text-center py-12" style={{ color: 'var(--mood-text)' }}>
+            <p>{loadError}</p>
+            <button className="mt-3 underline" onClick={fetchBookings}>Retry</button>
+          </div>
         ) : (
           <>
             {/* Upcoming */}

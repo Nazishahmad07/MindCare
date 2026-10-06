@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMood } from '../context/MoodContext'
-import axios from 'axios'
+import api from '../lib/api'
 import toast from 'react-hot-toast'
 
 const HELPLINES = [
@@ -26,7 +26,7 @@ export default function Emergency() {
   // Check backend config on mount
   useEffect(() => {
     if (!token) return
-    axios.get('/api/emergency/test-config', { headers: { Authorization: `Bearer ${token}` } })
+    api.get('/api/emergency/test-config', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => setConfig(r.data))
       .catch(() => {})
   }, [token])
@@ -47,7 +47,7 @@ export default function Emergency() {
   const sendEmergencyAlert = async () => {
     setSending(true)
     try {
-      const res = await axios.post('/api/emergency/alert', {
+      const res = await api.post('/api/emergency/alert', {
         userId: user?._id,
         mood,
         location: currentLoc,

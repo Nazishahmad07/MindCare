@@ -1,4 +1,7 @@
 require('dotenv').config()
+if (!process.env.JWT_SECRET || Buffer.byteLength(process.env.JWT_SECRET) < 32) {
+  throw new Error('JWT_SECRET must be configured with at least 32 random bytes before starting the backend')
+}
 const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')

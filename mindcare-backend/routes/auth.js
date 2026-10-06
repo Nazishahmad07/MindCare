@@ -7,7 +7,7 @@ const authMiddleware = require('../middleware/auth')
 const router = express.Router()
 
 const signToken = (userId) =>
-  jwt.sign({ userId }, process.env.JWT_SECRET || 'mindcare_secret', { expiresIn: '7d' })
+  jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
 
 // Register
 router.post('/register', [
@@ -37,6 +37,9 @@ router.post('/login', [
   body('email').trim().isEmail(),
   body('password').notEmpty(),
 ], async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) return res.status(400).json({ message: errors.array()[0].msg })
+
   try {
     const { password } = req.body
     const email = req.body.email.trim().toLowerCase()

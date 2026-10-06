@@ -36,10 +36,20 @@ router.post('/book', authMiddleware, async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(counselorId)) {
       return res.status(400).json({ message: 'Invalid counselor. Please select a real counselor from the database.' })
     }
+    const parsedDate = new Date(`${date}T00:00:00.000Z`)
+    const dateIsValid = /^\d{4}-\d{2}-\d{2}$/.test(date)
+      && !Number.isNaN(parsedDate.valueOf())
+      && parsedDate.toISOString().slice(0, 10) === date
+    if (!dateIsValid || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+      return res.status(400).json({ message: 'Date or time is invalid' })
+    }
+
+    await Booking.init()
 
     // Check counselor exists
     const counselor = await Counselor.findById(counselorId)
     if (!counselor) return res.status(404).json({ message: 'Counselor not found' })
+    if (!counselor.isAvailable) return res.status(409).json({ message: 'This counselor is not accepting bookings' })
 
     // Check for double booking on this slot
     const slotTaken = await Booking.findOne({
@@ -55,7 +65,17 @@ router.post('/book', authMiddleware, async (req, res) => {
     })
     if (userConflict) return res.status(400).json({ message: 'You already have a booking at this time.' })
 
-    const booking = await Booking.create({ userId: req.userId, counselorId, date, time, notes: notes || '' })
+    const slotKey = `${counselorId}:${date}:${time}`
+    const userSlotKey = `${req.userId}:${date}:${time}`
+    let booking
+    try {
+      booking = await Booking.create({ userId: req.userId, counselorId, date, time, slotKey, userSlotKey, notes: notes || '' })
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(409).json({ message: 'This slot was just booked. Please choose another time.' })
+      }
+      throw err
+    }
 
     // Mark slot as booked if it exists in counselor's availableSlots
     await Counselor.updateOne(
@@ -95,6 +115,8 @@ router.patch('/cancel/:bookingId', authMiddleware, async (req, res) => {
     if (booking.status === 'cancelled') return res.status(400).json({ message: 'Already cancelled' })
 
     booking.status = 'cancelled'
+    booking.slotKey = undefined
+    booking.userSlotKey = undefined
     await booking.save()
 
     await Counselor.updateOne(
@@ -128,14 +150,36 @@ router.get('/admin/all', authMiddleware, adminMiddleware, async (req, res) => {
 // PATCH approve/reject booking (admin)
 router.patch('/admin/:bookingId/status', authMiddleware, adminMiddleware, async (req, res) => {
   try {
+    await Booking.init()
     const { status, adminFeedback } = req.body
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.bookingId,
-      { status, adminFeedback },
-      { new: true }
-    ).populate('userId', 'name email').populate('counselorId', 'name')
+    if (!['approved', 'rejected', 'completed'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid booking status' })
+    }
+    const existingBooking = await Booking.findById(req.params.bookingId)
+    if (!existingBooking) return res.status(404).json({ message: 'Booking not found' })
 
-    if (!booking) return res.status(404).json({ message: 'Booking not found' })
+    const update = { $set: { status, adminFeedback: adminFeedback || '' } }
+    if (status === 'approved') {
+      update.$set.slotKey = `${existingBooking.counselorId}:${existingBooking.date}:${existingBooking.time}`
+      update.$set.userSlotKey = `${existingBooking.userId}:${existingBooking.date}:${existingBooking.time}`
+    } else if (status === 'rejected') {
+      update.$unset = { slotKey: 1, userSlotKey: 1 }
+    }
+    let booking
+    try {
+      booking = await Booking.findByIdAndUpdate(req.params.bookingId, update, { new: true })
+        .populate('userId', 'name email').populate('counselorId', 'name')
+    } catch (err) {
+      if (err.code === 11000) return res.status(409).json({ message: 'This booking conflicts with another active reservation' })
+      throw err
+    }
+
+    if (status === 'rejected') {
+      await Counselor.updateOne(
+        { _id: existingBooking.counselorId, 'availableSlots.date': existingBooking.date, 'availableSlots.time': existingBooking.time },
+        { $set: { 'availableSlots.$.isBooked': false } }
+      )
+    }
 
     await AdminLog.create({
       adminId: req.userId,
@@ -223,6 +267,8 @@ router.patch('/:bookingId/cancel', authMiddleware, async (req, res) => {
     if (!booking) return res.status(404).json({ message: 'Booking not found' })
     if (booking.status === 'cancelled') return res.status(400).json({ message: 'Already cancelled' })
     booking.status = 'cancelled'
+    booking.slotKey = undefined
+    booking.userSlotKey = undefined
     await booking.save()
     await Counselor.updateOne(
       { _id: booking.counselorId, 'availableSlots.date': booking.date, 'availableSlots.time': booking.time },

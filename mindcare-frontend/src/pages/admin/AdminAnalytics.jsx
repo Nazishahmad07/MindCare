@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import axios from 'axios'
+import api from '../../lib/api'
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid
@@ -12,40 +12,17 @@ const MOOD_COLORS = {
 }
 const MOOD_EMOJI = { happy: '😊', sad: '😔', angry: '😡', anxious: '😰', tired: '😴' }
 
-const DEMO_DISTRIBUTION = [
-  { _id: 'happy', count: 42 },
-  { _id: 'anxious', count: 38 },
-  { _id: 'sad', count: 29 },
-  { _id: 'tired', count: 24 },
-  { _id: 'angry', count: 15 },
-]
-
-const DEMO_WEEKLY = [
-  { date: '2026-04-04', happy: 8, sad: 5, anxious: 7, angry: 3, tired: 4 },
-  { date: '2026-04-05', happy: 10, sad: 4, anxious: 9, angry: 2, tired: 5 },
-  { date: '2026-04-06', happy: 7, sad: 7, anxious: 6, angry: 4, tired: 3 },
-  { date: '2026-04-07', happy: 12, sad: 3, anxious: 5, angry: 1, tired: 6 },
-  { date: '2026-04-08', happy: 9, sad: 6, anxious: 8, angry: 3, tired: 4 },
-  { date: '2026-04-09', happy: 11, sad: 4, anxious: 7, angry: 2, tired: 5 },
-  { date: '2026-04-10', happy: 8, sad: 8, anxious: 10, angry: 4, tired: 7 },
-]
-
-const DEMO_HIGH_RISK = [
-  { _id: 'u1', name: 'Priya Patel', email: 'priya@example.com', currentMood: 'sad' },
-  { _id: 'u2', name: 'Vikram Joshi', email: 'vikram@example.com', currentMood: 'anxious' },
-]
-
 export default function AdminAnalytics() {
   const { token } = useMood()
   const [data, setData] = useState({
-    distribution: DEMO_DISTRIBUTION,
-    weeklyTrend: DEMO_WEEKLY,
-    highRiskUsers: DEMO_HIGH_RISK,
+    distribution: [],
+    weeklyTrend: [],
+    highRiskUsers: [],
     negativeMoodUsers: []
   })
 
   useEffect(() => {
-    axios.get('/api/admin/analytics/moods', { headers: { Authorization: `Bearer ${token}` } })
+    api.get('/api/admin/analytics/moods', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => {
         if (r.data.distribution?.length) {
           // Transform weekly trend for recharts

@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import api from '../lib/api'
 import toast from 'react-hot-toast'
 import { useMood } from '../context/MoodContext'
-
-// Demo data shown when DB has no counselors yet
-const DEMO_COUNSELORS = [
-  { _id: 'demo_c1', name: 'Dr. Priya Sharma', specialization: 'Anxiety', bio: 'Certified CBT therapist with 8 years experience helping students manage anxiety and stress.', rating: 4.8, reviewCount: 124, sessionFee: 0, languages: ['English', 'Hindi'], avatar: '👩‍⚕️', isDemo: true },
-  { _id: 'demo_c2', name: 'Dr. Arjun Mehta', specialization: 'Depression', bio: 'Specializes in adolescent depression and mood disorders. Compassionate and evidence-based approach.', rating: 4.9, reviewCount: 98, sessionFee: 0, languages: ['English', 'Gujarati'], avatar: '👨‍⚕️', isDemo: true },
-  { _id: 'demo_c3', name: 'Ms. Kavya Nair', specialization: 'Stress', bio: 'Mindfulness-based stress reduction expert. Helps students build resilience and coping skills.', rating: 4.7, reviewCount: 87, sessionFee: 0, languages: ['English', 'Malayalam'], avatar: '🧑‍⚕️', isDemo: true },
-  { _id: 'demo_c4', name: 'Dr. Rahul Verma', specialization: 'Trauma', bio: 'Trauma-informed care specialist. Safe, non-judgmental space for healing and recovery.', rating: 4.6, reviewCount: 62, sessionFee: 0, languages: ['English', 'Hindi'], avatar: '👨‍⚕️', isDemo: true },
-]
 
 const TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00']
 
@@ -19,68 +11,35 @@ const SPEC_COLORS = {
   Trauma: '#ef4444', Relationships: '#10b981', General: '#6366f1'
 }
 
-// Seed counselors into DB (admin only, called once)
-const SEED_DATA = [
-  { name: 'Dr. Priya Sharma', email: 'priya.sharma@mindcare.ai', specialization: 'Anxiety', bio: 'Certified CBT therapist with 8 years experience helping students manage anxiety and stress.', rating: 4.8, reviewCount: 124, languages: ['English', 'Hindi'], avatar: '👩‍⚕️' },
-  { name: 'Dr. Arjun Mehta', email: 'arjun.mehta@mindcare.ai', specialization: 'Depression', bio: 'Specializes in adolescent depression and mood disorders. Compassionate and evidence-based approach.', rating: 4.9, reviewCount: 98, languages: ['English', 'Gujarati'], avatar: '👨‍⚕️' },
-  { name: 'Ms. Kavya Nair', email: 'kavya.nair@mindcare.ai', specialization: 'Stress', bio: 'Mindfulness-based stress reduction expert. Helps students build resilience and coping skills.', rating: 4.7, reviewCount: 87, languages: ['English', 'Malayalam'], avatar: '🧑‍⚕️' },
-  { name: 'Dr. Rahul Verma', email: 'rahul.verma@mindcare.ai', specialization: 'Trauma', bio: 'Trauma-informed care specialist. Safe, non-judgmental space for healing and recovery.', rating: 4.6, reviewCount: 62, languages: ['English', 'Hindi'], avatar: '👨‍⚕️' },
-]
-
 export default function Counselors() {
-  const { token, user } = useMood()
+  const { token } = useMood()
   const [counselors, setCounselors] = useState([])
-  const [isDemo, setIsDemo] = useState(false)
+  const [loadingCounselors, setLoadingCounselors] = useState(true)
+  const [counselorError, setCounselorError] = useState('')
   const [selected, setSelected] = useState(null)
   const [bookingData, setBookingData] = useState({ date: '', time: '', notes: '' })
   const [showModal, setShowModal] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [seeding, setSeeding] = useState(false)
   const [filterSpec, setFilterSpec] = useState('All')
 
   useEffect(() => { fetchCounselors() }, [])
 
   const fetchCounselors = async () => {
+    setLoadingCounselors(true)
+    setCounselorError('')
     try {
-      const res = await axios.get('/api/counselors')
-      if (res.data.counselors?.length) {
-        setCounselors(res.data.counselors)
-        setIsDemo(false)
-      } else {
-        setCounselors(DEMO_COUNSELORS)
-        setIsDemo(true)
-      }
+      const res = await api.get('/api/counselors')
+      setCounselors(res.data.counselors || [])
     } catch {
-      setCounselors(DEMO_COUNSELORS)
-      setIsDemo(true)
+      setCounselorError('Could not load counselors. Please try again.')
+    } finally {
+      setLoadingCounselors(false)
     }
   }
 
-  // Admin: seed real counselors into DB
-  const seedCounselors = async () => {
-    setSeeding(true)
-    try {
-      const authToken = token || localStorage.getItem('mc_token')
-      for (const c of SEED_DATA) {
-        await axios.post('/api/counselors/admin/counselors', c, {
-          headers: { Authorization: `Bearer ${authToken}` }
-        })
-      }
-      toast.success('Counselors added to database!')
-      await fetchCounselors()
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Seeding failed — are you logged in as admin?')
-    } finally {
-      setSeeding(false)
-    }
-  }
 
   const openBooking = (counselor) => {
-    if (counselor.isDemo) {
-      toast.error('These are demo counselors. An admin needs to add real counselors first.', { duration: 4000 })
-      return
-    }
     setSelected(counselor)
     setBookingData({ date: '', time: '', notes: '' })
     setShowModal(true)
@@ -94,7 +53,7 @@ export default function Counselors() {
     setLoading(true)
     try {
       const authToken = token || localStorage.getItem('mc_token')
-      const res = await axios.post('/api/counselors/book', {
+      const res = await api.post('/api/counselors/book', {
         counselorId: selected._id,
         date: bookingData.date,
         time: bookingData.time,
@@ -132,34 +91,8 @@ export default function Counselors() {
               Connect with certified mental health professionals
             </p>
           </div>
-          {/* Admin seed button */}
-          {user?.role === 'admin' && isDemo && (
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={seedCounselors} disabled={seeding}
-              className="px-4 py-2 rounded-xl text-sm font-semibold"
-              style={{ background: '#6366f122', color: '#6366f1', border: '1px solid #6366f144' }}>
-              {seeding ? '⏳ Adding...' : '➕ Add Demo Counselors to DB'}
-            </motion.button>
-          )}
         </div>
 
-        {/* Demo notice */}
-        {isDemo && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="p-3 rounded-2xl mb-5 flex items-center gap-3"
-            style={{ background: '#f59e0b15', border: '1px solid #f59e0b44' }}>
-            <span className="text-xl">⚠️</span>
-            <div>
-              <p className="text-sm font-semibold text-yellow-400">Showing demo counselors</p>
-              <p className="text-xs text-yellow-300 opacity-70">
-                No counselors in database yet.
-                {user?.role === 'admin'
-                  ? ' Click "Add Demo Counselors to DB" above to enable real bookings.'
-                  : ' Ask an admin to add counselors to enable booking.'}
-              </p>
-            </div>
-          </motion.div>
-        )}
 
         {/* Filter */}
         <div className="flex gap-2 flex-wrap mb-6">
@@ -178,14 +111,16 @@ export default function Counselors() {
 
         {/* Counselor Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {loadingCounselors && <p className="col-span-full text-center opacity-60" style={{ color: 'var(--mood-text)' }}>Loading counselors...</p>}
+          {!loadingCounselors && counselorError && <div className="col-span-full text-center" style={{ color: 'var(--mood-text)' }}><p>{counselorError}</p><button className="mt-3 underline" onClick={fetchCounselors}>Retry</button></div>}
+          {!loadingCounselors && !counselorError && counselors.length === 0 && <p className="col-span-full text-center opacity-60" style={{ color: 'var(--mood-text)' }}>No counselors are available yet. Please check back later.</p>}
           {filtered.map((c, i) => (
             <motion.div key={c._id}
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
               className="p-6 rounded-3xl"
               style={{
                 background: 'var(--mood-surface)',
-                border: `1px solid ${c.isDemo ? 'rgba(255,255,255,0.1)' : 'var(--mood-primary)33'}`,
-                opacity: c.isDemo ? 0.75 : 1
+                border: '1px solid var(--mood-primary)33'
               }}>
               <div className="flex items-start gap-4 mb-4">
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
@@ -220,11 +155,10 @@ export default function Counselors() {
                   onClick={() => openBooking(c)}
                   className="px-5 py-2 rounded-xl font-semibold text-sm"
                   style={{
-                    background: c.isDemo ? 'rgba(255,255,255,0.1)' : 'var(--mood-primary)',
-                    color: c.isDemo ? 'var(--mood-text)' : 'var(--mood-bg)',
-                    opacity: c.isDemo ? 0.6 : 1
+                    background: 'var(--mood-primary)',
+                    color: 'var(--mood-bg)'
                   }}>
-                  {c.isDemo ? 'Demo Only' : 'Book Session'}
+                  Book Session
                 </motion.button>
               </div>
             </motion.div>

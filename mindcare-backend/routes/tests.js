@@ -41,11 +41,16 @@ router.post('/submit', authMiddleware, async (req, res) => {
     if (!['GAD-7', 'PHQ-9'].includes(testType)) {
       return res.status(400).json({ message: 'Invalid test type. Must be GAD-7 or PHQ-9' })
     }
-    if (!Array.isArray(answers) || answers.length === 0) {
-      return res.status(400).json({ message: 'Answers are required' })
+    const expectedAnswerCount = testType === 'GAD-7' ? 7 : 9
+    if (!Array.isArray(answers) || answers.length !== expectedAnswerCount) {
+      return res.status(400).json({ message: `${testType} requires exactly ${expectedAnswerCount} answers` })
+    }
+    if (answers.some(answer => !answer || typeof answer.question !== 'string' || !answer.question.trim()
+      || !Number.isInteger(answer.score) || answer.score < 0 || answer.score > 3)) {
+      return res.status(400).json({ message: 'Each answer must include a question and an integer score from 0 to 3' })
     }
 
-    const totalScore = answers.reduce((sum, a) => sum + (Number(a.score) || 0), 0)
+    const totalScore = answers.reduce((sum, answer) => sum + answer.score, 0)
     const { severity, recommendation } = testType === 'GAD-7'
       ? scoreGAD7(totalScore)
       : scorePHQ9(totalScore)

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import axios from 'axios'
+import api from '../lib/api'
 
 const MoodContext = createContext(null)
 
@@ -147,7 +147,7 @@ export function MoodProvider({ children }) {
     const t = authToken || token
     if (!t) return
     try {
-      const res = await axios.get('/api/mood/analytics', {
+      const res = await api.get('/api/mood/analytics', {
         headers: { Authorization: `Bearer ${t}` }
       })
       setMoodAnalytics(res.data)
@@ -163,7 +163,7 @@ export function MoodProvider({ children }) {
     const t = localStorage.getItem('mc_token')
     if (t) {
       try {
-        const res = await axios.post('/api/mood/update', { mood: newMood, note }, {
+        const res = await api.post('/api/mood/update', { mood: newMood, note }, {
           headers: { Authorization: `Bearer ${t}` }
         })
         // Refresh analytics after mood update

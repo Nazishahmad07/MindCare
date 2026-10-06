@@ -15,8 +15,7 @@ function buildTransporter() {
 
   return nodemailer.createTransport({
     service: 'gmail',
-    auth: { user, pass },
-    tls: { rejectUnauthorized: false }
+    auth: { user, pass }
   })
 }
 
