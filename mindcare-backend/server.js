@@ -33,6 +33,7 @@ const normalizeOrigin = (value) => value.replace(/\/+$/, '')
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  'https://ai-mind-care.vercel.app',
   'http://localhost:3000',
   'http://localhost:5173',
 ].filter(Boolean).map(normalizeOrigin)
