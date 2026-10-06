@@ -1,183 +1,41 @@
-import React, { useRef, Suspense } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Text, Float, OrbitControls } from '@react-three/drei'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { useMood, MOODS } from '../context/MoodContext'
+import { Link, useNavigate } from 'react-router-dom'
+import './landing.css'
 
-// 3D Floating Emoji Sphere
-function EmojiSphere({ emoji, position, speed = 1 }) {
-  const meshRef = useRef()
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * speed) * 0.3
-      meshRef.current.rotation.y += 0.01 * speed
-    }
-  })
-  return (
-    <Float speed={speed} rotationIntensity={0.5} floatIntensity={0.5}>
-      <Text
-        ref={meshRef}
-        position={position}
-        fontSize={0.8}
-        anchorX="center"
-        anchorY="middle"
-      >
-        {emoji}
-      </Text>
-    </Float>
-  )
-}
-
-function Scene() {
-  const emojis = [
-    { emoji: '😊', position: [-3, 1, -2], speed: 0.8 },
-    { emoji: '😔', position: [3, -1, -3], speed: 0.6 },
-    { emoji: '😡', position: [-2, -2, -1], speed: 1.2 },
-    { emoji: '😰', position: [2, 2, -2], speed: 0.9 },
-    { emoji: '😴', position: [0, -3, -2], speed: 0.5 },
-    { emoji: '🧠', position: [-4, 0, -3], speed: 0.7 },
-    { emoji: '💙', position: [4, 1, -2], speed: 1.0 },
-    { emoji: '✨', position: [1, 3, -3], speed: 1.1 },
-  ]
-  return (
-    <>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
-      {emojis.map((e, i) => <EmojiSphere key={i} {...e} />)}
-    </>
-  )
-}
+const features = [
+  ['◌', 'Mood tracking that feels human', 'A gentle daily check-in helps you recognize patterns and build awareness at your own pace.'],
+  ['✦', 'Guidance when you need it', 'Use practical, private AI support to pause, reflect, and find your next helpful step.'],
+  ['⌁', 'Support built around student life', 'Explore focused activities, resources, and counselors designed for real campus pressures.'],
+]
+const steps = [['01', 'Check in', 'Choose how you feel and add a note whenever it helps.'], ['02', 'Understand', 'See calm, clear insights from your mood history.'], ['03', 'Take care', 'Find a small activity, resource, or someone to talk to.']]
 
 export default function Landing() {
-  const { setMood } = useMood()
   const navigate = useNavigate()
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return window.localStorage.getItem('mindcare-landing-theme') === 'dark' } catch { return false }
+  })
 
-  const handleMoodSelect = (moodId) => {
-    setMood(moodId)
-    navigate('/login')
-  }
+  useEffect(() => {
+    try { window.localStorage.setItem('mindcare-landing-theme', darkMode ? 'dark' : 'light') } catch { /* Storage may be unavailable. */ }
+  }, [darkMode])
 
-  return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: '#0a0a1a' }}>
-      {/* 3D Background */}
-      <div className="absolute inset-0 z-0">
-        <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-          <Suspense fallback={null}>
-            <Scene />
-          </Suspense>
-        </Canvas>
-      </div>
-
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 z-10"
-        style={{ background: 'radial-gradient(ellipse at center, transparent 30%, #0a0a1a 80%)' }} />
-
-      {/* Content */}
-      <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
-        >
-          <motion.div
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            className="text-6xl mb-4"
-          >
-            🧠
-          </motion.div>
-          <h1 className="text-5xl md:text-7xl font-black mb-4"
-            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            MindCare AI
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300 mb-2">
-            Mood-Based Digital Mental Health
-          </p>
-          <p className="text-gray-500">for Students</p>
-        </motion.div>
-
-        {/* Mood Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="w-full max-w-2xl"
-        >
-          <p className="text-center text-gray-300 text-lg mb-8 font-medium">
-            How are you feeling today?
-          </p>
-
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 mb-8 sm:mb-10">
-            {Object.values(MOODS).map((m, i) => (
-              <motion.button
-                key={m.id}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + i * 0.1, type: 'spring', stiffness: 300 }}
-                whileHover={{ scale: 1.2, y: -10 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => handleMoodSelect(m.id)}
-                className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-2xl transition-all"
-                style={{
-                  background: `${m.color}15`,
-                  border: `2px solid ${m.color}44`,
-                }}
-              >
-                <motion.span
-                  className="text-3xl sm:text-5xl"
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 2 + i * 0.3, repeat: Infinity }}
-                >
-                  {m.emoji}
-                </motion.span>
-                <span className="text-sm font-medium" style={{ color: m.color }}>
-                  {m.label}
-                </span>
-              </motion.button>
-            ))}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/login')}
-              className="primary-button px-8 py-3 rounded-xl font-semibold"
-            >
-              Sign In
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/register')}
-              className="primary-button px-8 py-3 rounded-xl font-semibold"
-            >
-              Get Started Free
-            </motion.button>
-          </div>
-        </motion.div>
-
-        {/* Features */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 max-w-2xl w-full"
-        >
-          {[
-            { icon: '🎭', text: 'Mood-Adaptive UI' },
-            { icon: '🤖', text: 'AI Chatbot' },
-            { icon: '🚨', text: 'Emergency Alerts' },
-          ].map((f, i) => (
-            <div key={i} className="text-center p-4 rounded-xl glass">
-              <div className="text-3xl mb-2">{f.icon}</div>
-              <p className="text-sm text-gray-400">{f.text}</p>
-            </div>
-          ))}
-        </motion.div>
-      </div>
-    </div>
-  )
+  return <div className={`landing-page${darkMode ? ' theme-dark' : ''}`}>
+    <header className="landing-header"><nav className="landing-nav">
+      <button className="brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><span className="brand-mark">🧠</span><span>MindCare AI</span><small>for students</small></button>
+      <div className="landing-nav-actions"><button className="landing-theme-toggle" type="button" onClick={() => setDarkMode(value => !value)} aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`} aria-pressed={darkMode}><span className={`theme-toggle-thumb${darkMode ? ' is-dark' : ''}`}><svg className="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg><svg className="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.5 8.5 0 1 0 20.2 15.4Z" /></svg></span></button><button className="landing-sign-in" onClick={() => navigate('/login')}>Sign In</button><button className="landing-primary small" onClick={() => navigate('/register')}>Get Started →</button></div>
+    </nav></header>
+    <main>
+      <section className="landing-hero"><i className="hero-glow glow-one" /><i className="hero-glow glow-two" /><div className="landing-container hero-grid">
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="hero-copy"><p className="eyebrow"><i />AI-powered mental wellness for students</p><h1>Your mental health deserves attention.</h1><p className="hero-description">MindCare AI helps university students understand their emotions, build healthier daily habits, and access supportive guidance whenever they need it most.</p><div className="hero-actions"><button className="landing-primary" onClick={() => navigate('/register')}>Get Started Free →</button><a className="landing-secondary" href="#how-it-works">▷ Explore MindCare</a></div><div className="hero-trust"><span>✓ Private &amp; confidential</span><span>⌂ Student-focused</span><span>◷ Available anytime</span></div></motion.div>
+        <motion.div initial={{ opacity: 0, scale: .97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: .12 }} className="product-preview"><div className="preview-topbar"><div className="preview-user"><b>A</b><div><strong>MindCare Studio</strong><span>Alex · Semester 4 · Biology</span></div></div><em>● Grounded &amp; reflective</em></div><div className="preview-card"><div className="preview-label"><span>Today&apos;s check-in score</span><strong>78 / 100</strong></div><div className="score-track"><i /></div><div className="score-scale"><span>Fatigued</span><span>Balanced</span><b>Grounded &amp; focused</b></div></div><div className="preview-card trend-card"><div className="preview-label"><span>⌁ 7-day trend vector</span><b>+14% vs finals week</b></div><svg viewBox="0 0 360 82"><defs><linearGradient id="area" x1="0" x2="0" y1="0" y2="1"><stop stopColor="#4338ca" stopOpacity=".25" /><stop offset="1" stopColor="#4338ca" stopOpacity="0" /></linearGradient></defs><path d="M0 58 Q28 68 58 50 T118 54 T178 34 T238 39 T298 19 L360 14 L360 82 L0 82Z" fill="url(#area)" /><path d="M0 58 Q28 68 58 50 T118 54 T178 34 T238 39 T298 19 L360 14" fill="none" stroke="#4338ca" strokeWidth="3" strokeLinecap="round" /><circle cx="360" cy="14" r="5" fill="#4338ca" /></svg><div className="chart-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><b>Today</b></div></div><div className="preview-bottom"><span>Suggested for you</span><button onClick={() => navigate('/register')}>Try a 2-minute reset →</button></div></motion.div>
+      </div></section>
+      <section className="confidence-strip"><div className="landing-container"><p>Designed with clarity, privacy, and student wellbeing at the center.</p><div><span>24/7</span><span>Private by design</span><span>Made for campus life</span></div></div></section>
+      <section className="landing-section feature-section"><div className="landing-container"><div className="section-heading"><p className="section-kicker">A calmer way forward</p><h2>Support that meets you where you are.</h2><p>Small, evidence-informed tools for the moments when life feels like a lot.</p></div><div className="feature-grid">{features.map(([icon, title, text], index) => <motion.article whileHover={{ y: -4 }} key={title} className={`feature-card f${index}`}><span className="feature-icon">{icon}</span><b className="feature-number">0{index + 1}</b><h3>{title}</h3><p>{text}</p><a href="#how-it-works">Learn more →</a></motion.article>)}</div></div></section>
+      <section id="how-it-works" className="landing-section how-section"><div className="landing-container how-grid"><div><p className="section-kicker">How it works</p><h2>A steady rhythm for feeling better.</h2><p className="section-intro">There is no perfect way to take care of yourself. MindCare simply makes the next small step easier to see.</p><button className="landing-primary" onClick={() => navigate('/register')}>Start your check-in →</button></div><div className="steps">{steps.map(([number, title, text]) => <article key={number}><b>{number}</b><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></div></section>
+      <section className="landing-section safety-section"><div className="landing-container safety-card"><span className="safety-icon">♥</span><div><p className="section-kicker">Here when it matters</p><h2>A safe space for everyday wellbeing.</h2><p>MindCare is built for reflection and support—not diagnosis. If you are in immediate danger, please contact your local emergency services or a trusted person.</p></div><button className="landing-secondary" onClick={() => navigate('/emergency')}>Emergency support →</button></div></section>
+      <section className="landing-section final-cta"><div className="landing-container"><p className="section-kicker">Begin with one small moment</p><h2>Make space for your wellbeing today.</h2><p>Free to start. Private by design. Made for students.</p><button className="landing-primary" onClick={() => navigate('/register')}>Create your free account →</button></div></section>
+    </main>
+    <footer className="landing-footer"><div className="landing-container footer-grid"><div><div className="footer-brand"><span className="brand-mark">🧠</span><b>MindCare AI</b></div><p>AI-powered mental wellness for students. Understanding emotions and building healthy habits, one day at a time.</p></div><div><b>Product</b><a href="#how-it-works">How it works</a><button onClick={() => navigate('/login')}>Sign in</button><button onClick={() => navigate('/register')}>Get started</button></div><div><b>Support</b><a href="#how-it-works">Help center</a><button onClick={() => navigate('/emergency')}>Emergency support</button><a href="mailto:support@mindcare.ai">Contact</a></div><div className="footer-support"><b>Support MindCare AI</b><p>Help us build better mental wellness tools for students. If you believe in our mission, you can contribute through UPI.</p><strong>UPI ID: <span>nazishmallick58@okicici</span></strong><small>Thank you for supporting our mission. 💜</small></div></div><div className="landing-container footer-bottom"><span>© 2026 MindCare AI. All rights reserved.</span><div className="footer-legal-links"><Link to="/privacy-policy">Privacy Policy</Link><Link to="/terms-of-service">Terms of Service</Link></div><span>Wellness support, not medical advice.</span></div></footer>
+  </div>
 }

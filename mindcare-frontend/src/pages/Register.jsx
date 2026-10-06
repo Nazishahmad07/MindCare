@@ -1,9 +1,18 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useMood } from '../context/MoodContext'
 import api from '../lib/api'
 import toast from 'react-hot-toast'
+import AuthPage from '../components/AuthPage'
+
+const fields = [
+  { key: 'name', label: 'Full Name', type: 'text', placeholder: 'Enter your full name', autoComplete: 'name' },
+  { key: 'email', label: 'Email Address', type: 'email', placeholder: 'Enter your email address', autoComplete: 'email' },
+  { key: 'password', label: 'Password', type: 'password', placeholder: 'Create a password', autoComplete: 'new-password', hint: 'Use at least 8 characters with a mix of letters, numbers and symbols.' },
+  { key: 'phone', label: 'Emergency Contact Number', type: 'tel', placeholder: 'Enter emergency contact number', autoComplete: 'tel', hint: 'This will be used in case of emergency.', optional: true },
+  { key: 'emergencyContact', label: 'Emergency Contact Email', type: 'email', placeholder: 'Enter emergency contact email', autoComplete: 'email', hint: "We'll use this email to reach your emergency contact if needed.", optional: true },
+]
 
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', emergencyContact: '' })
@@ -26,67 +35,32 @@ export default function Register() {
     }
   }
 
-  const fields = [
-    { key: 'name', label: 'Full Name', type: 'text', placeholder: 'Your name' },
-    { key: 'email', label: 'Email', type: 'email', placeholder: 'you@example.com' },
-    { key: 'password', label: 'Password', type: 'password', placeholder: '••••••••' },
-    { key: 'phone', label: 'Phone (for alerts)', type: 'tel', placeholder: '+91 9999999999' },
-    { key: 'emergencyContact', label: 'Emergency Contact Email', type: 'email', placeholder: 'guardian@example.com' },
-  ]
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'var(--mood-bg, #0a0a1a)' }}>
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🌱</div>
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--mood-primary, #6366f1)' }}>
-            Join MindCare AI
-          </h1>
-          <p className="text-gray-400 mt-1">Your mental health journey starts here</p>
-        </div>
+    <AuthPage mode="register">
+      <div className="auth-heading register-heading">
+        <p className="auth-eyebrow">A little care goes a long way</p>
+        <h2>Create Your Account</h2>
+        <p>Start your mental wellness journey with MindCare AI.</p>
+      </div>
 
-        <div className="p-8 rounded-3xl glass" style={{ border: '1px solid var(--mood-primary, #6366f1)' }}>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {fields.map(f => (
-              <div key={f.key}>
-                <label className="block text-sm font-medium mb-1 text-gray-300">{f.label}</label>
-                <input
-                  type={f.type}
-                  required={f.key !== 'phone' && f.key !== 'emergencyContact'}
-                  value={form[f.key]}
-                  onChange={e => setForm({ ...form, [f.key]: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-gray-500 focus:outline-none"
-                  style={{ borderColor: 'var(--mood-primary, #6366f1)44' }}
-                  placeholder={f.placeholder}
-                />
-              </div>
-            ))}
-            <motion.button
-              type="submit"
-              disabled={loading}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-3 rounded-xl font-semibold text-white mt-2"
-              style={{ background: 'linear-gradient(135deg, var(--mood-primary, #6366f1), var(--mood-secondary, #8b5cf6))' }}
-            >
-              {loading ? '⏳ Creating account...' : 'Create Account'}
-            </motion.button>
-          </form>
-
-          <p className="text-center mt-4 text-gray-400 text-sm">
-            Already have an account?{' '}
-            <Link to="/login" className="font-semibold hover:underline"
-              style={{ color: 'var(--mood-primary, #6366f1)' }}>
-              Sign In
-            </Link>
-          </p>
-        </div>
-      </motion.div>
-    </div>
+      <form className="auth-form register-form" onSubmit={handleSubmit}>
+        {fields.map(field => (
+          <label className="auth-field" key={field.key}>
+            <span>{field.label}{field.optional && <small className="auth-optional">Optional</small>}</span>
+            <span className="auth-input-wrap">
+              <span className="auth-input-icon" aria-hidden="true">{field.key === 'name' ? '♙' : field.key === 'password' ? '▣' : field.key === 'phone' ? '⌕' : '✉'}</span>
+              <input type={field.type} autoComplete={field.autoComplete} required={!field.optional}
+                minLength={field.key === 'password' ? 8 : undefined}
+                value={form[field.key]} onChange={e => setForm({ ...form, [field.key]: e.target.value })}
+                placeholder={field.placeholder} />
+            </span>
+            {field.hint && <small className="auth-field-hint">{field.hint}</small>}
+          </label>
+        ))}
+        <motion.button type="submit" disabled={loading} whileTap={{ scale: .99 }} className="auth-submit">
+          {loading ? 'Creating account…' : 'Create Account'} <span aria-hidden="true">→</span>
+        </motion.button>
+      </form>
+    </AuthPage>
   )
 }

@@ -9,6 +9,7 @@ import Emergency from './pages/Emergency'
 import Profile from './pages/Profile'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import LegalPage from './pages/LegalPage'
 import Counselors from './pages/Counselors'
 import MyBookings from './pages/MyBookings'
 import Resources from './pages/Resources'
@@ -39,6 +40,8 @@ function AppRoutes() {
       <Route path="/" element={user ? <Navigate to={homeRedirect} /> : <Landing />} />
       <Route path="/login" element={user ? <Navigate to={homeRedirect} /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to={homeRedirect} /> : <Register />} />
+      <Route path="/privacy-policy" element={<LegalPage type="privacy" />} />
+      <Route path="/terms-of-service" element={<LegalPage type="terms" />} />
       <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Layout><Chatbot /></Layout></ProtectedRoute>} />
       <Route path="/emergency" element={<ProtectedRoute><Layout><Emergency /></Layout></ProtectedRoute>} />
