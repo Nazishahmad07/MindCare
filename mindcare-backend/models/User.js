@@ -2,9 +2,9 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true, maxlength: 100 },
+  name: { type: String, required: true, trim: true, minlength: 2, maxlength: 80 },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true, minlength: 6 },
+  password: { type: String, required: true, minlength: 8, maxlength: 12 },
   phone: { type: String, trim: true },
   emergencyContact: { type: String, trim: true },
   currentMood: { type: String, enum: ['happy', 'sad', 'angry', 'anxious', 'tired', null], default: null },
